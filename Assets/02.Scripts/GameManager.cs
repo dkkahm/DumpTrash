@@ -25,7 +25,8 @@ public class GameManager : MonoBehaviour {
 	const float HEAVY_TRASH_RATIO = 0.01f;
 
 	GameStatus m_status = GameStatus.Waiting;
-	int m_trash_count = 0;
+	int m_created_trash_count = 0;
+	int m_dumped_trash_count = 0;
 	
 	public GameObject m_trash_prefab;
 	public GameObject m_heavy_trash_prefab;
@@ -40,8 +41,8 @@ public class GameManager : MonoBehaviour {
 		if(m_status == GameStatus.Waiting) {
 			int count = Random.Range(INITIAL_MIN_TRASH_COUNT, INITIAL_MAX_TRASH_COUNT);
 			count = count >= INITIAL_MAX_TRASH_COUNT - 1 ? 1 : 0;
-			if(m_trash_count + count > INITIAL_TRASH_COUNT) {
-				count = INITIAL_TRASH_COUNT - m_trash_count;
+			if(m_created_trash_count + count > INITIAL_TRASH_COUNT) {
+				count = INITIAL_TRASH_COUNT - m_created_trash_count;
 			}
 
 			for(int i = 0; i < count; ++ i) {
@@ -50,14 +51,14 @@ public class GameManager : MonoBehaviour {
 					Random.Range(INITIAL_TRASH_Y_POS_MIN, INITIAL_TRASH_Y_POS_MAX),
 					Random.Range(INITIAL_TRASH_Z_POS_MIN, INITIAL_TRASH_Z_POS_MAX));
 
-				if(Random.value > HEAVY_TRASH_RATIO)
-					Instantiate(m_trash_prefab, pos, Quaternion.Euler(Vector3.zero)); // Random.rotation);
+				if(Random.value < HEAVY_TRASH_RATIO)
+					Instantiate(m_heavy_trash_prefab, pos, Random.rotation);
 				else
-					Instantiate(m_heavy_trash_prefab, pos, Quaternion.Euler(Vector3.zero)); // Random.rotation);
+					Instantiate(m_trash_prefab, pos, Random.rotation);
 			}
 
-			m_trash_count += count;
-			if(m_trash_count >= INITIAL_TRASH_COUNT) {
+			m_created_trash_count += count;
+			if(m_created_trash_count >= INITIAL_TRASH_COUNT) {
 				m_status = GameStatus.Running;
 			}
 		}
@@ -68,10 +69,10 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public void TrashDumpped(GameObject trash) {
-		-- m_trash_count;
+		++ m_dumped_trash_count;
 		Destroy(trash, 1f);
 
-		if(m_trash_count == 0) {
+		if(m_dumped_trash_count == m_created_trash_count) {
 			Debug.Log("Done");
 			m_status = GameStatus.Done;
 		}
