@@ -3,13 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SimpleObjectThrow : MonoBehaviour {
+	const float DETERMIN_CLICK_VELOCIVY = 2f;
+
 	GameObject m_hooked_obj = null;
 	Vector3 m_hooked_obj_pos;
 	Vector3 m_hooked_obj_velocity = Vector3.zero;
 
+	Vector3 m_touch_down_pos;
+	float m_touch_down_time;
+
 	Vector3 m_n_of_plane;
 	Vector3 m_p_of_plane;
 	float m_d_of_plane;
+
+	float m_click_velocivy = 30f;
 
 	HashSet<string> m_target_tag_set = new HashSet<string>();
 
@@ -67,6 +74,8 @@ public class SimpleObjectThrow : MonoBehaviour {
 						Vector3 v = m_p_of_plane - Camera.main.gameObject.transform.position;
 						m_d_of_plane = Mathf.Abs(Vector3.Dot(v, m_n_of_plane));
 						//Debug.Log("p:" + m_p_of_plane + ",n:" + m_n_of_plane + ",d:" + m_d_of_plane);
+
+						m_touch_down_pos = touchPosition;
 					}
 				}
 			}
@@ -79,7 +88,18 @@ public class SimpleObjectThrow : MonoBehaviour {
 		case TouchPhase.Ended:
 			if(m_hooked_obj != null) {
 				UpdateHookObjectPosition(touchPosition);
-				m_hooked_obj.GetComponent<Rigidbody>().velocity = m_hooked_obj_velocity;
+				if(m_hooked_obj_velocity.magnitude < DETERMIN_CLICK_VELOCIVY) {
+					Vector3 forward = Camera.main.transform.TransformDirection(Vector3.forward);
+					forward.y = 0f;
+					forward = forward.normalized;
+					Vector3 v = forward * m_click_velocivy;
+					Debug.Log("Click:" + v);
+
+					m_hooked_obj.GetComponent<Rigidbody>().velocity = forward * m_click_velocivy;
+				} else {
+					Debug.Log("Flick");
+					m_hooked_obj.GetComponent<Rigidbody>().velocity = m_hooked_obj_velocity;
+				}
 				m_hooked_obj = null;
 			}
 			break;
@@ -90,6 +110,7 @@ public class SimpleObjectThrow : MonoBehaviour {
 		Vector3 prev_obj_pos = m_hooked_obj_pos;
 		Vector3 touch_pos = new Vector3(touchPosition.x, touchPosition.y, m_d_of_plane);
 		m_hooked_obj_pos = Camera.main.ScreenToWorldPoint(touch_pos);
+		// if(m_hooked_obj_pos.y < 0.5f) m_hooked_obj_pos.y = 0.5f;
 		m_hooked_obj_velocity = (m_hooked_obj_pos - prev_obj_pos) / Time.deltaTime;
 	}
 }

@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour {
 		Done,
 	}
 
-	const int INITIAL_TRASH_COUNT = 100;
+	const int INITIAL_TRASH_COUNT = 10;
 
 	const int INITIAL_MIN_TRASH_COUNT = 0;
 	const int INITIAL_MAX_TRASH_COUNT = 10;
